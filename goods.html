@@ -1,0 +1,316 @@
+<html>
+    <head>
+        <title> view Goods</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+       
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    </head>
+	<style>
+		body {
+				background-color: #B1B0B0;
+			}
+		/* created a oval image by choosing 75% radius*/
+		img {
+			border-radius: 75%;
+			}
+
+		/* main image with position relative (relative to normal position), I found that text-align: center worked better at centering than margin-left, margin-right */
+		.rainbow {
+			position: relative;
+			text-align: center;
+		}
+
+		/* reference www.w3schools.com/css/css3_images.asp */
+		/* Pixie Bakery title - top, left, transform:translate helped position the text*/
+		.text {
+			color: #008000;
+			font-size:xx-large;
+			position: absolute;
+			top: 15%;
+			left: 55%;
+			transform: translate(-90%, -90%);
+	
+		}
+
+		/* reference www.w3schools.com/css/css3_images.asp */
+		/* "Wholesome Deliciousness" slogan -  top, left, transfor:translate helped position the text, put it in italics to emphasize*/
+		.text2 {
+			color: #000000;
+			font: caption;
+			font-size:large;
+			font-style:italic;
+			position: absolute;
+			top: 45%;
+			left: 75%;
+			transform: translate(-90%, -90%);
+			
+		/*styling for the first paragraph*/
+		.sect1 {
+			margin: 50px;
+			border: double;	
+		}	
+			
+	</style>
+	
+    <body>
+	
+	<div id="mb" class="menubar">
+	<div class="login">
+		<form>
+			<div class ="usernamepsswrd">
+				<input type="email" placeholder="Username" required>
+				<input type="text" placeholder="Password" required>
+				<button type="submit">Login</button>
+			</div>	
+		</form>	
+	</div>	
+</div>	
+        <h1>BAKED GOODS</h1>
+        <div> <button id="showCreateButton" onclick="showCreate()">Create</button></div>
+			<div class="sect1">
+				<table class="table" id="goodTable">
+					<tr>
+							<th>id</th>
+							<th>Name</th>
+							<th>
+								Flavor
+							</th>
+							<th>Price</th>
+							<th>Update</th>
+							<th>Delete</th>
+					</tr>
+                
+				</table>
+				
+			
+				<div id='createUpdateForm' style="display: none">
+					<h2><span id="createLabel">Create a</span> <span id="updateLabel">Update</span> Good</h2>
+					<input type="hidden" name="id"/>
+					Name <input type="text" name="name" /><br/>
+					Flavor <input type="text" name="flavor"/> <br/>
+					Price <input type="number" name="price"/> <br/>
+					<span><button id="doCreateButton" onclick="doCreate()">Create</button></span>
+					<span><button id="doUpdateButton" onclick="doUpdate()">Update</button></span>
+				</div>
+			</div>	
+    </body>
+	<body id="bdy">
+
+<!-- created a change color button and change image button to demonstrate the use of events-->
+
+
+
+
+<!-- created divs for the main image, and the text in the image so as to be able to add styling-->	
+<!-- created id img1 to be used in the changeColor function below to change border color and style-->
+<!-- also created img1 changeImage function to change images to a winter scene for the Christmas theme-->
+<div id = "div3" class="rainbow">
+	<img id="img1" src="images/rainbow.jpg" style="width:60%;">
+	<div id="div1" class="text">PIXIE BAKERY</div>
+	<div id="div2" class="text2">"Wholesome Deliciousness in the heart of Donegal"</div>
+</div>
+
+
+
+	
+	
+</body>
+	
+	
+	
+    <script>
+    function showCreate(){
+        document.getElementById('showCreateButton').style.display="none"
+        document.getElementById('goodTable').style.display="none"
+        document.getElementById('createUpdateForm').style.display="block"
+        document.getElementById('createLabel').style.display="inline"
+        document.getElementById('updateLabel').style.display="none"
+        document.getElementById('doCreateButton').style.display="block"
+        document.getElementById('doUpdateButton').style.display="none"
+    }
+    function showViewAll(){
+        document.getElementById('showCreateButton').style.display="block"
+        document.getElementById('goodTable').style.display="block"
+        document.getElementById('createUpdateForm').style.display="none"
+    }
+    function showUpdate(buttonElement){
+        document.getElementById('showCreateButton').style.display="none"
+        document.getElementById('goodTable').style.display="none"
+        document.getElementById('createUpdateForm').style.display="block"
+        document.getElementById('createLabel').style.display="none"
+        document.getElementById('updateLabel').style.display="inline"
+        document.getElementById('doCreateButton').style.display="none"
+        document.getElementById('doUpdateButton').style.display="block"
+        var rowElement = buttonElement.parentNode.parentNode
+        // these is a way of finding the closest <tr> which would safer, closest()
+        
+        var good = getGoodFromRow(rowElement)
+        populateFormWithGood(good)
+    }
+    function doCreate(){
+        var form = document.getElementById('createUpdateForm')
+        var good = {}
+       
+        good.name = form.querySelector('input[name="name"]').value
+        good.flavor = form.querySelector('input[name="flavor"]').value
+        good.price = form.querySelector('input[name="price"]').value
+        console.log(JSON.stringify(good))
+        createGoodAjax(good)
+        
+        
+    }
+    function doUpdate(){
+        var good = getGoodFromForm();
+        var rowElement = document.getElementById(good.id);
+        updateGoodAjax(good);
+        setGoodInRow(rowElement,good);
+       
+        clearForm();
+        showViewAll();
+    }
+    function doDelete(r){
+        var tableElement = document.getElementById('goodTable');
+        var rowElement = r.parentNode.parentNode;
+        var index = rowElement.rowIndex;
+        deleteGoodAjax(rowElement.getAttribute("id"));
+        tableElement.deleteRow(index);
+    }
+    function addGoodToTable(good){
+        var tableElement = document.getElementById('goodTable')
+        var rowElement = tableElement.insertRow(-1)
+        rowElement.setAttribute('id',good.id)
+        var cell1 = rowElement.insertCell(0);
+        cell1.innerHTML = good.id
+        var cell2 = rowElement.insertCell(1);
+        cell2.innerHTML = good.name
+        var cell3 = rowElement.insertCell(2);
+        cell3.innerHTML = good.flavor
+        var cell4 = rowElement.insertCell(3);
+        cell4.innerHTML = good.price
+        var cell5 = rowElement.insertCell(4);
+        cell5.innerHTML = '<button onclick="showUpdate(this)">Update</button>'
+        var cell6 = rowElement.insertCell(5);
+        cell6.innerHTML = '<button onclick=doDelete(this)>delete</button>'
+    }
+    function clearForm(){
+        var form = document.getElementById('createUpdateForm')
+        form.querySelector('input[name="name"]').value=''
+        form.querySelector('input[name="flavor"]').value=''
+        form.querySelector('input[name="price"]').value=''
+    }
+    function getGoodFromRow(rowElement){
+        var good ={}
+        good.id  = rowElement.getAttribute('id')
+        good.name = rowElement.cells[1].firstChild.textContent
+        good.flavor= rowElement.cells[2].firstChild.textContent
+        good.price = parseInt(rowElement.cells[3].firstChild.textContent,10)
+        return good
+    }
+    function setGoodInRow(rowElement, good){
+        rowElement.cells[0].firstChild.textContent= good.id  
+        rowElement.cells[1].firstChild.textContent= good.name
+        rowElement.cells[2].firstChild.textContent= good.flavor
+        rowElement.cells[3].firstChild.textContent= good.price
+    }
+    function populateFormWithGood(good){
+        var form = document.getElementById('createUpdateForm')
+        form.querySelector('input[name="id"]').disabled = true
+        form.querySelector('input[name="id"]').value  = good.id
+        form.querySelector('input[name="name"]').value= good.name
+        form.querySelector('input[name="flavor"]').value= good.flavor
+        form.querySelector('input[name="price"]').value= good.price
+        return good
+    }
+    function getGoodFromForm(){
+        var form = document.getElementById('createUpdateForm')
+        var good = {}
+        good.id = form.querySelector('input[name="id"]').value
+        good.name = form.querySelector('input[name="name"]').value
+        good.flavor = form.querySelector('input[name="flavor"]').value
+        good.price = parseInt(form.querySelector('input[name="price"]').value,10)
+        console.log(JSON.stringify(good))
+        return good
+    }
+    function getAllAjax(){
+        $.ajax({
+            "url": "http://127.0.0.1:5000/goods",
+            "method":"GET",
+            "data":"",
+            "dataType": "JSON",
+            "success":function(result){
+                //console.log(result);
+                for (good of result){
+                    addGoodToTable(good);
+                }
+                
+            },
+            "error":function(xhr,status,error){
+                console.log("error: "+status+" msg:"+error);
+            }
+        });
+    }
+    function createGoodAjax(good){
+        //var car = {"reg":"12 D 1234","make":"Fiat","model":"Punto","price":3000}
+        console.log(JSON.stringify(good));
+        $.ajax({
+            "url": "http://127.0.0.1:5000/goods",
+            "method":"POST",
+            "data":JSON.stringify(good),
+            "dataType": "JSON",
+            contentType: "application/json; charset=utf-8",
+            "success":function(result){
+                //console.log(result);
+                good.id = result.id
+                addGoodToTable(good)
+                clearForm()
+                showViewAll()
+            },
+            "error":function(xhr,status,error){
+                console.log("error: "+status+" msg:"+error);
+            }
+        });
+    }
+    function updateGoodAjax(good){
+        //var car = {"reg":"12 D 1234","price":8000}
+        console.log(JSON.stringify(good));
+        $.ajax({
+            "url": "http://127.0.0.1:5000/goods/"+encodeURI(good.id),
+            "method":"PUT",
+            "data":JSON.stringify(good),
+            "dataType": "JSON",
+            contentType: "application/json; charset=utf-8",
+            "success":function(result){
+               // console.log(result);
+                  
+            },
+            "error":function(xhr,status,error){
+                console.log("error: "+status+" msg:"+error);
+            }
+        });
+    }
+    function deleteGoodAjax(id){
+        
+        //console.log(JSON.stringify('deleting '+id));
+        $.ajax({
+            "url": "http://127.0.0.1:5000/goods/"+encodeURI(id),
+            "method":"DELETE",
+            "data":"",
+            "dataType": "JSON",
+            contentType: "application/json; charset=utf-8",
+            "success":function(result){
+                //console.log(result);
+                  
+            },
+            "error":function(xhr,status,error){
+                console.log("error: "+status+" msg:"+error);
+            }
+        });
+    }
+    getAllAjax();
+  
+  
+  
+  
+    
+    </script>
+</html>
